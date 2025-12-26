@@ -1,62 +1,91 @@
 <!DOCTYPE html>
-copy con index.html
-<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <title>Verena Revolution 2.0</title>
     <style>
         body { font-family: sans-serif; background: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        #header { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; width: 100%; max-width: 500px; }
-        .avatar { width: 60px; height: 60px; border-radius: 50%; border: 2px solid #27ae60; object-fit: cover; }
-        #chat { width: 100%; max-width: 500px; background: white; height: 400px; overflow-y: auto; border-radius: 10px; border: 1px solid #ccc; padding: 15px; }
-        .bot { color: #2c3e50; background: #e8f5e9; padding: 10px; border-radius: 10px; margin: 10px 0; }
-        .user { color: #fff; background: #2980b9; padding: 10px; border-radius: 10px; margin: 10px 0; text-align: right; }
-        #input-area { display: flex; gap: 10px; width: 100%; max-width: 500px; margin-top: 10px; }
-        input { flex: 1; padding: 12px; border-radius: 20px; border: 1px solid #ddd; }
-        button { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; }
+        #chat-container { width: 100%; max-width: 550px; background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        #header { background: #2c3e50; color: white; padding: 15px; display: flex; align-items: center; gap: 10px; }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #27ae60; }
+        #chat { height: 400px; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .bot { background: #e8f5e9; padding: 10px; border-radius: 10px; align-self: flex-start; max-width: 85%; }
+        .user { background: #2980b9; color: white; padding: 10px; border-radius: 10px; align-self: flex-end; max-width: 85%; }
+        #controls { padding: 15px; border-top: 1px solid #eee; display: flex; flex-direction: column; gap: 10px; }
+        .input-row { display: flex; gap: 8px; align-items: center; }
+        input[type="text"] { flex: 1; padding: 12px; border-radius: 20px; border: 1px solid #ddd; outline: none; }
+        .btn { border: none; background: #f0f0f0; padding: 10px; border-radius: 50%; cursor: pointer; font-size: 18px; }
+        .btn-send { background: #27ae60; color: white; border-radius: 20px; padding: 10px 20px; font-weight: bold; }
+        #preview { max-width: 80px; display: none; border-radius: 5px; }
     </style>
 </head>
 <body>
-    <div id="header">
-        <img src="/static/avatar.png" class="avatar" alt="Verena">
-        <div>
-            <h2 style="margin:0">Verena Revolution</h2>
-            <small>Cientista Multimodal</small>
+    <div id="chat-container">
+        <div id="header">
+            <img src="/static/avatar.png" class="avatar" alt="V">
+            <div><strong>Verena Revolution</strong><br><small>IA Nativa Multimodal</small></div>
+        </div>
+        <div id="chat">
+            <div class="bot">Olá! Sou Verena. Posso analisar fotos de exames, ouvir sua voz e orientar sobre saúde geriátrica. Como posso ajudar?</div>
+        </div>
+        <div id="controls">
+            <img id="preview" src="#" alt="Preview">
+            <div class="input-row">
+                <label class="btn" title="Anexar Exame">📷<input type="file" id="img-in" accept="image/*" style="display:none" onchange="showPre(this)"></label>
+                <button class="btn" onclick="startMic()">🎤</button>
+                <input type="text" id="msg" placeholder="Digite ou use o mic...">
+                <button class="btn-send" onclick="send()">ENVIAR</button>
+            </div>
         </div>
     </div>
-    <div id="chat">
-        <div class="bot">Ola! Sou Verena. Em que posso ajudar na saude e direitos do idoso hoje? (Em emergencia, ligue 192).</div>
-    </div>
-    <div id="input-area">
-        <input type="text" id="msg" placeholder="Sua duvida (PubMed/Direito)...">
-        <button onclick="send()">ENVIAR</button>
-    </div>
+
     <script>
-        async function send() {
-            const i = document.getElementById('msg');
-            const c = document.getElementById('chat');
-            if(!i.value) return;
-            const text = i.value;
-            c.innerHTML += `<div class="user">${text}</div>`;
-            i.value = '';
-            try {
-                const res = await fetch('/chat', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({message: text})
-                });
-                const d = await res.json();
-                c.innerHTML += `<div class="bot"><strong>Verena:</strong> ${d.response}</div>`;
-            } catch(e) {
-                c.innerHTML += `<div class="bot">Erro de conexao.</div>`;
+        function showPre(input) {
+            const p = document.getElementById('preview');
+            if (input.files && input.files[0]) {
+                const r = new FileReader();
+                r.onload = e => { p.src = e.target.result; p.style.display = 'block'; };
+                r.readAsDataURL(input.files[0]);
             }
-            c.scrollTop = c.scrollHeight;
+        }
+
+        async function send() {
+            const msgIn = document.getElementById('msg');
+            const fileIn = document.getElementById('img-in');
+            const chat = document.getElementById('chat');
+            if(!msgIn.value && !fileIn.files[0]) return;
+
+            chat.innerHTML += `<div class="user">${msgIn.value || "Imagem enviada"}</div>`;
+            
+            const formData = new FormData();
+            formData.append('message', msgIn.value);
+            if(fileIn.files[0]) formData.append('image', fileIn.files[0]);
+
+            msgIn.value = '';
+            fileIn.value = '';
+            document.getElementById('preview').style.display = 'none';
+
+            try {
+                const res = await fetch('/chat', { method: 'POST', body: formData });
+                const d = await res.json();
+                chat.innerHTML += `<div class="bot">${d.response}</div>`;
+                speak(d.response);
+            } catch(e) { chat.innerHTML += `<div class="bot">Erro de conexao.</div>`; }
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function speak(t) {
+            const u = new SpeechSynthesisUtterance(t);
+            u.lang = 'pt-BR';
+            window.speechSynthesis.speak(u);
+        }
+
+        function startMic() {
+            const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            rec.lang = 'pt-BR';
+            rec.onresult = e => { document.getElementById('msg').value = e.results[0][0].transcript; };
+            rec.start();
         }
     </script>
 </body>
 </html>
-cd ..
-git add templates/index.html
-git commit -m "Fix: Removendo caracteres especiais do HTML para evitar erro de Unicode"
-git push origin main
