@@ -11,7 +11,7 @@ if API_KEY:
     genai.configure(api_key=API_KEY)
 
 # AQUI ESTA A CORRECAO DO ERRO 404
-model = genai.GenerativeModel(model_name="gemini-1.5-flash")
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 @app.route('/')
 def index():
