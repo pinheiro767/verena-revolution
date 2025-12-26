@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import os
 from flask import Flask, render_template, request, jsonify
 import google.generativeai as genai
@@ -8,15 +7,15 @@ app = Flask(__name__)
 API_KEY = os.environ.get("GEMINI_API_KEY")
 if API_KEY:
     genai.configure(api_key=API_KEY)
+else:
+    print("‚ö†Ô∏è GEMINI_API_KEY n√£o definido")
 
 model = genai.GenerativeModel(
     model_name="gemini-1.5-flash",
     system_instruction=(
-        "VocÍ È a Verena 2.0, assistente de IA Nativa Multimodal para cuidadores de idosos. "
-        "Sua base È estritamente cientÌfica: PubMed (˙ltimos 5 anos) com DOI. "
-        "Analise imagens e ·udios com rigor legal e neurocientÌfico. "
-        "Repudie termos infantilizados. Oriente com empatia e calma. "
-        "Em emergÍncias, instrua a ligar para o SAMU (192) imediatamente."
+        "Voce e a Verena 2.0, assistente de IA Nativa Multimodal para cuidadores de idosos. "
+        "Sua base e estritamente cientifica: PubMed com DOI. Repudie termos infantilizados. "
+        "Em emergencias, instrua a ligar para o SAMU (192) imediatamente."
     )
 )
 
@@ -28,11 +27,17 @@ def index():
 def chat():
     try:
         data = request.get_json()
-        user_message = data.get("message")
+        user_message = data.get("message", "")
+
+        if not user_message:
+            return jsonify({"response": "Nenhuma mensagem recebida."}), 400
+
         response = model.generate_content(user_message)
         return jsonify({"response": response.text})
+
     except Exception as e:
-        return jsonify({"response": "Erro tÈcnico de conex„o."}), 500
+        print(e)
+        return jsonify({"response": "Erro tecnico de conexao."}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
