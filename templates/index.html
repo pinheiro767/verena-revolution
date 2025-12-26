@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Verena Revolution 2.0</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        #chat-header { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; width: 100%; max-width: 500px; }
+        .avatar { width: 60px; height: 60px; border-radius: 50%; border: 2px solid #27ae60; object-fit: cover; }
+        #chat { width: 100%; max-width: 500px; background: white; height: 400px; overflow-y: auto; border-radius: 10px; border: 1px solid #ccc; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .bot { color: #2c3e50; background: #e8f5e9; padding: 10px; border-radius: 10px; margin: 10px 0; border-left: 5px solid #27ae60; }
+        .user { color: #fff; background: #2980b9; padding: 10px; border-radius: 10px; margin: 10px 0; text-align: right; }
+        #input-area { display: flex; gap: 10px; width: 100%; max-width: 500px; margin-top: 10px; }
+        input { flex: 1; padding: 12px; border-radius: 20px; border: 1px solid #ddd; outline: none; }
+        button { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div id="chat-header">
+        <img src="/static/avatar.png" class="avatar" alt="Verena">
+        <div>
+            <h2 style="margin:0">Verena Revolution ??</h2>
+            <small>Especialista Cient°fica e Jur°dica</small>
+        </div>
+    </div>
+    <div id="chat">
+        <div class="bot">Ol†! Sou Verena. Em que posso ajudar na sa£de e direitos da pessoa idosa hoje? (Em caso de emergància, ligue 192).</div>
+    </div>
+    <div id="input-area">
+        <input type="text" id="msg" placeholder="D£vida (PubMed/DOI/Direito)...">
+        <button onclick="send()">ENVIAR</button>
+    </div>
+    <script>
+        async function send() {
+            const i = document.getElementById('msg');
+            const c = document.getElementById('chat');
+            if(!i.value) return;
+            c.innerHTML += `<div class="user">${i.value}</div>`;
+            const text = i.value;
+            i.value = '';
+            c.scrollTop = c.scrollHeight;
+            try {
+                const res = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message: text})
+                });
+                const d = await res.json();
+                c.innerHTML += `<div class="bot"><strong>Verena:</strong> ${d.response}</div>`;
+            } catch(e) {
+                c.innerHTML += `<div class="bot" style="border-left-color:red">Erro na conex∆o cient°fica.</div>`;
+            }
+            c.scrollTop = c.scrollHeight;
+        }
+    </script>
+</body>
+</html>
