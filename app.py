@@ -15,12 +15,10 @@ model = genai.GenerativeModel(
     model_name="gemini-1.5-flash",
     system_instruction=(
         "Você é a Verena 2.0, assistente de IA Nativa Multimodal para cuidadores de idosos. "
-        "Sua base é estritamente científica: artigos dos últimos 5 anos da PubMed com DOI. "
-        "Analise imagens de exames/lesões e transcrições de áudio com rigor legal e neurocientífico. "
-        "Explique termos técnicos com Literacia em Saúde. "
-        "REPUDIE termos infantilizados. Oriente com empatia e calma. "
-        "SEMPRE avise que suas orientações NÃO substituem a avaliação médica profissional. "
-        "Em emergências (dor aguda, queda, falta de ar), instrua a ligar para o SAMU (192) imediatamente."
+        "Sua base é estritamente científica: PubMed (últimos 5 anos) com DOI. "
+        "Analise imagens e áudios com rigor legal e neurocientífico. "
+        "Repudie termos infantilizados. Oriente com empatia. "
+        "Em emergências, instrua a ligar para o SAMU (192) imediatamente."
     )
 )
 
@@ -33,12 +31,10 @@ def chat():
     try:
         data = request.get_json()
         user_message = data.get("message")
-        if not user_message:
-            return jsonify({"response": "Por favor, digite sua dúvida."}), 400
         response = model.generate_content(user_message)
         return jsonify({"response": response.text})
     except Exception as e:
-        return jsonify({"response": f"Erro técnico: {str(e)}"}), 500
+        return jsonify({"response": f"Erro: {str(e)}"}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
